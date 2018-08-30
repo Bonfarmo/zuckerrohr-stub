@@ -27,7 +27,7 @@ from matplotlib import pyplot as plt
 def caminit(img):
     print(len(img)) # Width of pic
     print(len(img[0])) # Height of pic
-    return cv2.resize(img[100:600,150:510], (200,200), interpolation = cv2.INTER_AREA)
+    return cv2.resize(img[120:800,10:1010], (200,200), interpolation = cv2.INTER_AREA)
 
 def invert_color(frame):
     return 255-frame
@@ -35,24 +35,31 @@ def invert_color(frame):
 def plt_img(img):
     plt.imshow(img)
 
-img = cv2.imread('../images/img1.jpeg')
+img = cv2.imread('../images/img10.jpeg')
 img = caminit(img)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-mini = maxi = 0
-offset = 10
+gray = cv2.medianBlur(gray,3)
+mini = maxi = avg = 0
+offset = 30
 edges = cv2.Canny(gray, 150, 200, apertureSize = 3)
-lines = cv2.HoughLinesP(edges, 1, np.pi/2, 10, None, 2, 1);
+lines = cv2.HoughLinesP(edges, 1, np.pi/2, 14, None, 7, 1);
 for line in lines[0]:
     pt1 = (line[0],line[1])
     pt2 = (line[2],line[3])
     angle = np.arctan2(line[0] - line[2], line[1] - line[3]) * 180.0 / np.pi
     if abs(angle) == 90:
         continue
-    if (line[0] < mini) or (mini == 0):
+    cv2.line(img, (line[0],line[1]), (line[2],line[3]), (0,0,255), 1)
+    
+    if (mini == 0):
+        avg = line[0]
+        mini = line[0]
+    avg = (avg + line[0])/2;
+    if (line[0] < mini):
         mini = line[0]
     if line[0] > maxi:
         maxi = line[0]
-cv2.line(img, (mini - offset,0), (mini - offset,200), (0,0,255), 1)
-cv2.line(img, (maxi + offset,0), (maxi + offset,200), (0,0,255), 1)
+cv2.line(img, (avg - offset,0), (avg - offset,200), (0,0,255), 1)
+cv2.line(img, (avg + offset,0), (avg + offset,200), (0,0,255), 1)
 plt_img(img)
 cv2.destroyAllWindows()
